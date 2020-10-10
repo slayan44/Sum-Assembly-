@@ -1,0 +1,91 @@
+.model small
+.stack 100h
+
+.data
+c1 db?
+num1 db ?
+num2 db ?
+result db ?
+
+
+message1 db, 10, 13, "Enter the first number: ", '$'
+message2 db, 10, 13, "Enter the second number: ", '$'
+message3 db, 10, 13, "The sum is: ", '$'
+prompt db, 10, 13, "Error. Please enter a number between 0 and 9"
+
+.code
+
+;Complete the summing of two single digits, restrict values to 0 & 9 
+
+main proc
+   mov ax, @data
+   mov ds, ax
+
+   mov ah, 09h ; Prints message1 and stops at $, present in DX register
+   mov dx, offset message1
+   int 21h
+   
+   mov dh,10  
+   int 21h
+
+   l1: ;Loops back to start of code to reset count to 0 after fail prompt 
+   mov ah, 1 ; Read a character and saves the value entered in variable num1 in its BCD form
+   int 21h
+   sub al, 30h 
+   mov num1, al
+   mov ch,0
+   int 21h
+   sub cx,30h
+   mov c1,cx
+   
+   cycle: ; if(i= 0; i < 10 ; i++)
+   cmp c1,num1 ;Compares user value to counter
+    jz l2 ;If value matches jump to l2 and continue code
+    add cx,01 ;Increments counter  
+    cmp dh,cx ;compares count to limit 
+    jz fail ;If count reaches limit shows user failed prompt 
+            ;If user enters a letter the count will still increment to 10, if value does not match then it prompts fail 
+    jmp cycle
+    
+   fail:
+    mov ah, 09h
+    mov dx, offset prompt
+    int 21h
+    jmp l1
+    
+   l2: ;continuation of code 
+   mov ah, 09h ; Prints message1 and stops at $, present in DX register.
+   mov dx, offset message2
+   int 21h
+    
+   mov ah, 1 ; Read a character and saves the value entered in variable num2 in its BCD form
+   int 21h
+   sub al, 30h
+   mov num2, al
+    
+   add al, num1 ; Add the two variables and save the result in another variable, result
+   mov result, al
+   mov ah, 0 ; Clear AH register
+    
+   aaa ; ASCII Adjust after Addition
+   add ah, 30h
+   add al, 30h ; Adding 30H to BCD will Convert it to ASCII code which will print the digit 
+   
+   mov bx, ax ; move AX to BX - save printed value in BH and BL register
+   
+   mov ah, 09h ; Prints message3 and stops at $, present in DX register.
+   mov dx, offset message3
+   int 21h
+    
+   mov ah, 2 ; Print contents present in BH register
+   mov dl, bh
+   int 21h
+    
+   mov ah, 2 ; Print contents present in BL register
+   mov dl, bl 
+   int 21h
+    
+   mov ah, 4ch ; DOS exit
+   int 21h
+main endp
+end main
